@@ -3,9 +3,12 @@ plugins {
     // Minecraft 1.21.11 is still an OBFUSCATED version, so we need the
     // "-remap" flavour of Loom. (Minecraft 26.1+ would use plain
     // "net.fabricmc.fabric-loom" instead, with no Yarn mappings at all.)
-    // If this exact Loom version refuses to resolve, check
-    // https://github.com/FabricMC/fabric-loom/releases for a newer 1.14.x
-    // or 1.15.x build and bump the version string below.
+    // Fabric's own blog post for the 1.21.11 release says to use Loom 1.14
+    // to develop mods for it, but doesn't give an exact patch number. If
+    // this exact version (1.14.10) refuses to resolve, the GitHub Actions
+    // build log (see .github/workflows/build.yml) will print every
+    // available version for net.fabricmc.fabric-loom-remap - just copy the
+    // newest 1.14.x (or 1.15.x) one from that log into the line below.
     id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
 }
 

@@ -1,0 +1,60 @@
+plugins {
+    id 'java'
+    // Minecraft 1.21.11 is still an OBFUSCATED version, so we need the
+    // "-remap" flavour of Loom. (Minecraft 26.1+ would use plain
+    // "net.fabricmc.fabric-loom" instead, with no Yarn mappings at all.)
+    // If this exact Loom version refuses to resolve, check
+    // https://github.com/FabricMC/fabric-loom/releases for a newer 1.14.x
+    // or 1.15.x build and bump the version string below.
+    id 'net.fabricmc.fabric-loom-remap' version '1.14.10'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    // Needed if you decide to grab any helper libraries (e.g. an OkHttp
+    // multipart helper) from Modrinth/CurseForge instead of writing your
+    // own - not required for the code in this project.
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // NOTE ON CARPET:
+    // We deliberately do NOT add Carpet as a Gradle dependency. This mod
+    // never imports a single Carpet class - it only ever sends the SAME
+    // text commands a player would type (/player <name> move forward, ...)
+    // through Minecraft's own command dispatcher. That means:
+    //   1. We don't need Carpet's jar to compile.
+    //   2. We are far less likely to break when Carpet updates.
+    //   3. The PLAYER still needs to put Carpet's jar in their mods/
+    //      folder for these commands to exist at runtime - see fabric.mod.json
+    //      "recommends" and the README.
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+}
+
+processResources {
+    inputs.property "version", project.version
+    filteringCharset "UTF-8"
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}

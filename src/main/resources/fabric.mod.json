@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "aicompanions",
+  "version": "${version}",
+  "name": "AI Carpet Companions",
+  "description": "Gives two Carpet-mod fake players an AI brain (OpenAI) and a voice (ElevenLabs): one polite companion, one rude/prankster companion. Both act on their own and can be talked to with push-to-talk.",
+  "authors": [
+    "you"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.aicompanions.AICompanionsMod"
+    ],
+    "client": [
+      "com.aicompanions.client.AICompanionsClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "1.21.11",
+    "java": ">=21"
+  },
+  "recommends": {
+    "carpet": "*"
+  },
+  "custom": {
+    "aicompanions:note": "Carpet is a RUNTIME requirement, not a compile-time one: this mod only ever sends /player ... text commands, so install the 'Carpet' mod (by altrisi/gnembon, Modrinth project 'carpet') into mods/ yourself alongside this jar."
+  }
+}

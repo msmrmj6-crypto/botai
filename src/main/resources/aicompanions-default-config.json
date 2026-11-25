@@ -1,0 +1,34 @@
+{
+  "openaiApiKey": "",
+  "openaiModel": "gpt-4o-mini",
+  "elevenLabsApiKey": "",
+  "sttModel": "scribe_v2",
+  "ttsModel": "eleven_multilingual_v2",
+  "ttsOutputFormat": "pcm_24000",
+  "bots": [
+    {
+      "carpetName": "Rafiq",
+      "displayName": "رفيق",
+      "personality": "POLITE",
+      "voiceId": "7GuGTyc18I5wWanLbbNq",
+      "keybindId": "talk_polite",
+      "cursingEnabled": false,
+      "pranksEnabled": false,
+      "prankCooldownSeconds": 300,
+      "prankAutoExtinguishSeconds": 20,
+      "autonomyIntervalSeconds": 45
+    },
+    {
+      "carpetName": "Waqah",
+      "displayName": "الوقح",
+      "personality": "RUDE",
+      "voiceId": "DhfzvPf0OIN8xdGwcHOk",
+      "keybindId": "talk_rude",
+      "cursingEnabled": true,
+      "pranksEnabled": true,
+      "prankCooldownSeconds": 300,
+      "prankAutoExtinguishSeconds": 20,
+      "autonomyIntervalSeconds": 45
+    }
+  ]
+}

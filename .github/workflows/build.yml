@@ -40,16 +40,21 @@ jobs:
       - name: Build the jar
         run: gradle build --no-daemon --stacktrace
 
+      # Only the real mod jar - NOT the -sources.jar build.gradle also
+      # produces (withSourcesJar()), which would otherwise sit right next
+      # to it and make "which file do I download" confusing on a phone.
       - name: Upload jar as a build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ai-carpet-bots-jar
-          path: build/libs/*.jar
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
           if-no-files-found: error
 
-      # Also publish the jar(s) to a single, stable release page so you can
-      # download them straight from your phone's browser with one tap -
-      # no need to open the "Actions" tab or log in to GitHub for anything.
+      # Also publish the jar to a single, stable release page so you can
+      # download it straight from your phone's browser with one tap - no
+      # need to open the "Actions" tab or log in to GitHub for anything.
       - name: Publish to the "latest-build" release
         uses: ncipollo/release-action@v1
         with:
@@ -61,8 +66,9 @@ jobs:
 
             Download the `.jar` file below and put it in your `mods/`
             folder alongside Fabric API and Carpet.
-          artifacts: "build/libs/*.jar"
+          artifacts: "build/libs/*.jar,!build/libs/*-sources.jar"
           allowUpdates: true
           replacesArtifacts: true
+          removeArtifacts: true
           makeLatest: true
           token: ${{ secrets.GITHUB_TOKEN }}

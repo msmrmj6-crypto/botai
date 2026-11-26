@@ -32,59 +32,55 @@ Minecraft (`OPENAI_API_KEY`, `ELEVENLABS_API_KEY`) or directly into
 you're more comfortable with. Environment variables always win if both
 are set.
 
-## 2. Building the jar
+## 2. Getting the jar
 
-This was written entirely offline, without network access, so it has
-**not been compiled or run yet**. You'll build it the normal way Fabric
-mods get built:
+**You don't need to build this yourself.** Every push to this repo's
+`main` branch automatically builds the jar on GitHub's own servers (via
+`.github/workflows/build.yml`) and publishes it here:
+
+**https://github.com/msmrmj6-crypto/botai/releases/tag/latest-build**
+
+Open that link on your phone, download `ai-carpet-bots-1.0.0.jar`, and
+drop it into your `mods/` folder next to Fabric API and Carpet. No
+Termux, no local Gradle, no JDK on your phone required. That release page
+always has the jar built from the latest commit - if you (or I) change
+the code again, it gets replaced there automatically a minute or two
+after the push.
+
+If you ever do want to build it yourself on a real computer:
 
 ```bash
-# from inside this project folder
-gradle wrapper              # one-time: generates gradlew for you (needs internet)
-./gradlew build             # downloads Minecraft/Fabric/Yarn and compiles
+# from inside this project folder (needs JDK 21 + internet)
+gradle build       # no wrapper is committed; a plain system Gradle 9.2.0+ works
 ```
 
 The resulting jar shows up at `build/libs/ai-carpet-bots-1.0.0.jar`.
-Requirements: **JDK 21** and an internet connection (Gradle needs to
-download Minecraft's libraries, Yarn mappings, Fabric API, and the Loom
-Gradle plugin the first time).
 
-**Easier alternative:** open the project folder directly in **IntelliJ
-IDEA** with the Minecraft Development plugin installed - it'll offer to
-import the Gradle project and set everything up for you, and you'll get
-inline red underlines for anything that needs a one-line fix (see next
-section) instead of a wall of command-line errors.
+### If the build ever fails to resolve a dependency
 
-### If the build fails to resolve a dependency
+Modding Minecraft 1.21.11 depends on a few fast-moving pieces (Loom,
+Fabric API, Yarn mappings) that get new releases constantly.
+`gradle.properties`/`build.gradle` have comments on exactly which value
+to check/update if a version string goes stale.
 
-Modding Minecraft 1.21.11 specifically depends on a few fast-moving
-pieces (Loom, Fabric API, Yarn mappings) that get new releases
-constantly. `gradle.properties` has comments on exactly which value to
-check/update and where, if a version string in there is stale by the time
-you build this.
+## 3. Status: compiles clean against real 1.21.11 mappings
 
-## 3. The handful of spots most likely to need a tiny fix
+Earlier drafts of this project were written and syntax-checked without
+ever downloading Minecraft (no network access in that environment), so a
+few Minecraft-API call sites were educated guesses. The first real
+GitHub Actions build caught exactly those, and they're now fixed and
+confirmed building successfully:
 
-I wrote and syntax-checked every file in this project, and fully compiled
-the ~10 files that don't touch Minecraft at all (the AI brain, the voice
-code, the config). I could **not** compile-test the files that call into
-Minecraft/Fabric's own API, because that requires downloading Minecraft
-itself, which needs network access I don't have in this environment.
-Minecraft's internal method names shift slightly between versions, so
-treat these as "probably right, quick to fix if not" rather than
-guaranteed:
+| File | What changed in 1.21.11 | Fix |
+|---|---|---|
+| `bot/BotController.java`, `bot/PrankManager.java` | `CommandManager#executeWithPrefix` was removed | Switched to Brigadier's own `CommandDispatcher#execute(String, source)` - part of the Brigadier library itself, not Minecraft's wrapper, so it's more stable across future Minecraft versions too. |
+| `command/ModCommands.java` | `ServerCommandSource#hasPermissionLevel(int)` was replaced by a much larger named-permission system | Dropped the permission gate on `/aibot` - this mod targets singleplayer with cheats on, where you're the only one who can ever run it anyway. |
+| `bot/BotController.java` | `Entity#getPos()` was renamed | Now calls `getEntityPos()`. |
+| `client/AICompanionsClient.java` | `KeyBinding`'s category parameter changed from a plain string to a `KeyBinding.Category` object | Builds one with `KeyBinding.Category.create(Identifier.of(...))`. |
 
-| File | What to check if it won't compile |
-|---|---|
-| `bot/BotController.java` | `runCommand()` - the one line that runs a command as the server/console (`executeWithPrefix`). |
-| `bot/BotManager.java` | `broadcastBotChat()` - the one line that sends a chat message to everyone. |
-| `listener/ChatListener.java` | `message.getContent().getString()` - how to get plain text out of a chat message. |
-
-In every case, the fix is a one-line signature swap once you have
-IntelliJ's autocomplete pointed at the real, mapped Minecraft classes -
-none of these touch the actual logic (personalities, prompts, Carpet
-command strings, HTTP calls), which is the part that's hardest to get
-wrong and the part I'm most confident in.
+None of this touched the actual logic (personalities, prompts, Carpet
+command strings, HTTP calls) - just the handful of lines that talk
+directly to Minecraft's own classes.
 
 The exact Carpet command grammar this project relies on (`/player <name>
 move forward`, `look at <x> <y> <z>`, `attack continuous`, `stop`, ...) is

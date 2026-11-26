@@ -47,7 +47,9 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
-    withSourcesJar()
+    // No withSourcesJar(): this project's only distribution path is "download
+    // one jar on your phone", and a second -sources.jar next to it on the
+    // release page just makes it unclear which file to grab.
 }
 
 processResources {

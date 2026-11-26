@@ -19,9 +19,13 @@ import java.util.Optional;
  * /aibot rude <name> <bool>  - toggle cursing + prank features for that bot
  * /aibot list                - show configured bots and their state
  * <p>
- * Requires permission level 2 (operator) - the default for the world owner
- * in singleplayer with cheats enabled, which is the setup this project was
- * built around.
+ * No .requires(...) permission gate: Minecraft 1.21.11 replaced the old
+ * simple "permission level" integer with a much more involved named-
+ * permission system (net.minecraft.command.permission.*), and this mod's
+ * target setup is singleplayer with cheats on, where you - the world owner
+ * - are the only one who can ever run these commands anyway. If you later
+ * add other players and want to gate this, look at Fabric API's
+ * permission APIs for a version-independent way to do it.
  */
 public final class ModCommands {
 
@@ -35,7 +39,6 @@ public final class ModCommands {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("aibot")
-                        .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.literal("spawn")
                                 .then(CommandManager.argument("name", StringArgumentType.word())
                                         .executes(ctx -> {

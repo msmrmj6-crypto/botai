@@ -2,8 +2,12 @@ package com.aicompanions.bot;
 
 import com.aicompanions.config.BotProfile;
 import com.aicompanions.util.TickScheduler;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The "lava trap" prank, with two safety rails baked in so it's a scare +
@@ -15,6 +19,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
  * disabling pranks (pranksEnabled = false).
  */
 public class PrankManager {
+
+    private static final Logger LOGGER = Logger.getLogger("aicompanions");
 
     private final MinecraftServer server;
     private final BotController controller;
@@ -70,6 +76,10 @@ public class PrankManager {
     }
 
     private void runCommand(String command) {
-        server.getCommandManager().executeWithPrefix(server.getCommandSource(), command);
+        try {
+            server.getCommandManager().getDispatcher().execute(command, server.getCommandSource());
+        } catch (CommandSyntaxException e) {
+            LOGGER.log(Level.FINE, "[AI Companions] Command rejected: " + command, e);
+        }
     }
 }

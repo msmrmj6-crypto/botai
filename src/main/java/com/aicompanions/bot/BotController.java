@@ -2,8 +2,12 @@ package com.aicompanions.bot;
 
 import com.aicompanions.config.BotProfile;
 import com.aicompanions.util.TickScheduler;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Turns high-level decisions into the exact text commands Carpet's fake
@@ -12,18 +16,18 @@ import net.minecraft.server.network.ServerPlayerEntity;
  * through vanilla's own command dispatcher. That's what lets this mod avoid
  * a compile-time dependency on Carpet entirely (see build.gradle).
  * <p>
- * ============================= KNOWN RISK AREA =============================
- * {@link #runCommand} is the single most likely line in this whole project
- * to need a tiny fix once you open this in an IDE with the real 1.21.11
- * mappings: the exact method used to "run a command as the server/console"
- * has been named slightly differently across Minecraft versions. If your
- * IDE underlines executeWithPrefix in red, open ServerCommandSource /
- * CommandManager with autocomplete and swap in whatever that version calls
- * it - the string you build (e.g. "player Waqah move forward") never
- * changes, only the one line that sends it does.
- * =============================================================================
+ * {@link #runCommand} goes straight through Brigadier's own
+ * CommandDispatcher#execute(String, Object), not Minecraft's own
+ * CommandManager#executeWithPrefix wrapper - the wrapper's exact shape has
+ * changed across Minecraft versions (it did again in 1.21.11, which is why
+ * an earlier draft of this file didn't compile), but Brigadier's own
+ * dispatcher.execute(command, source) is part of the Brigadier library
+ * itself and has stayed stable for years, so it's the more future-proof
+ * choice here.
  */
 public class BotController {
+
+    private static final Logger LOGGER = Logger.getLogger("aicompanions");
 
     private final MinecraftServer server;
 
@@ -32,7 +36,14 @@ public class BotController {
     }
 
     private void runCommand(String command) {
-        server.getCommandManager().executeWithPrefix(server.getCommandSource(), command);
+        try {
+            server.getCommandManager().getDispatcher().execute(command, server.getCommandSource());
+        } catch (CommandSyntaxException e) {
+            // Carpet isn't installed, or the installed Carpet version
+            // doesn't accept this exact wording - skip this one action
+            // instead of crashing the whole brain cycle over it.
+            LOGGER.log(Level.FINE, "[AI Companions] Command rejected: " + command, e);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -146,7 +157,7 @@ public class BotController {
                 if (botEntity == null) {
                     return; // bot despawned / Carpet not installed - nothing to do
                 }
-                double dist = botEntity.getPos().distanceTo(player.getPos());
+                double dist = botEntity.getEntityPos().distanceTo(player.getEntityPos());
                 if (dist > 3.0) {
                     lookAtPlayer(bot, player);
                     runCommand("player " + bot.carpetName + " move forward");

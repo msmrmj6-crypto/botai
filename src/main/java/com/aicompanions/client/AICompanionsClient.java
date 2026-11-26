@@ -14,6 +14,7 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -43,6 +44,13 @@ public class AICompanionsClient implements ClientModInitializer {
         return t;
     });
 
+    // 1.21.11 changed KeyBinding's category parameter from a plain
+    // translation-key String to a KeyBinding.Category object built from an
+    // Identifier - create() derives the lang key from the id itself
+    // (key.categories.aicompanions.general), which is what's in the lang file.
+    private static final KeyBinding.Category CATEGORY =
+            KeyBinding.Category.create(Identifier.of("aicompanions", "general"));
+
     private final Map<String, KeyBinding> keyBindings = new HashMap<>();
     private final Map<String, MicRecorder> recorders = new HashMap<>();
 
@@ -58,7 +66,7 @@ public class AICompanionsClient implements ClientModInitializer {
                     "key.aicompanions." + bot.keybindId,
                     InputUtil.Type.KEYSYM,
                     key++,
-                    "category.aicompanions"));
+                    CATEGORY));
             keyBindings.put(bot.carpetName, kb);
             recorders.put(bot.carpetName, new MicRecorder());
         }
